@@ -7,6 +7,7 @@ class Hoe #:nodoc:
   #
   #    Hoe.spec "myproj" do
   #      self.git_release_tag_prefix  = "REL_"
+  #      self.git_release_auto_push   = false
   #      self.git_remotes            << "myremote"
   #    end
   #
@@ -26,6 +27,11 @@ class Hoe #:nodoc:
     # [default: <tt>"v"</tt>]
 
     attr_accessor :git_release_tag_prefix
+    
+    # What 'rake release' to automatically push your
+    # git repo to remote 'origin' after tagging?
+    
+    attr_accessor :git_release_auto_push
 
     # Which remotes do you want to push tags, etc. to?
     # [default: <tt>%w(origin)</tt>]
@@ -95,7 +101,13 @@ class Hoe #:nodoc:
         end
       end
 
-      task :release => "git:tag"
+      task :release => ["git:tag", "git:push"]
+      
+      task :push do
+        if git_release_auto_push
+          git_remotes.each { |remote| sh "git push -f #{remote}" }
+        end
+      end
     end
 
     def git_svn?
